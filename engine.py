@@ -31,6 +31,27 @@ CLASS_REGISTRY: dict[str, type] = {"C_GameObject": GameObject}
 OBJECT_REGISTRY: dict[str, object] = {}
 _OBJ_TAG = re.compile(r"<o>([^<>]+)</o>")
 
+
+class _FmtMap:
+    """Mapping handed to str.format_map. Top-level keys resolve against the
+    object's instance dict first; if missing, fall back to attribute lookup
+    and — if the result is a no-arg callable — invoke it and embed the return.
+    Lets format strings reference both variables (`{player}`) and method
+    returns (`{fnc_render_player}`) uniformly."""
+    __slots__ = ("_obj",)
+
+    def __init__(self, obj):
+        self._obj = obj
+
+    def __getitem__(self, key):
+        d = self._obj.__dict__
+        if key in d:
+            return d[key]
+        attr = getattr(self._obj, key, None)
+        if callable(attr):
+            return attr()
+        raise KeyError(key)
+
 def create_class_object(dependencies):
     def make_init(all_defaults):
         def __init__(self, **kwargs):
@@ -151,7 +172,7 @@ class GameInit:
         steps = GAME_DATA.get("init").get(init_set).get("steps")
         step = steps[self.init_step]
         if cmd is None:
-            return self._resolve_return(step.get("q").format_map(self.__dict__))
+            return self._resolve_return(step.get("q").format_map(_FmtMap(self)))
 
         if (r := self._resolve_response(step.get("r", None), cmd)) is not None: return r
         if (r := self._resolve_answer(step.get("a", None), step, cmd)) is not None: return r
@@ -164,7 +185,7 @@ class GameInit:
             self.init_step = 0
             return self.handler_interface(None)
 
-        return self._resolve_return(steps[self.init_step].get("q").format_map(self.__dict__))
+        return self._resolve_return(steps[self.init_step].get("q").format_map(_FmtMap(self)))
 
     def _resolve_response(self, response_list, cmd):
         if response_list:
@@ -177,12 +198,12 @@ class GameInit:
         if a_required:
             cmd = cmd.lower()
             if isinstance(a_required, str):
-                a_required = a_required.format_map(self.__dict__)
+                a_required = a_required.format_map(_FmtMap(self))
                 if f"'{cmd}'" not in a_required:
-                    return self._resolve_return(step.get("q").format_map(self.__dict__))
+                    return self._resolve_return(step.get("q").format_map(_FmtMap(self)))
             elif isinstance(a_required, list):
                 if cmd not in a_required:
-                    return self._resolve_return(step.get("q").format_map(self.__dict__))
+                    return self._resolve_return(step.get("q").format_map(_FmtMap(self)))
 
     def _resolve_game_fnc(self, game_fnc, cmd):
         if game_fnc:
@@ -210,7 +231,7 @@ class GameInit:
 
     def _resolve_return(self, text):
         while True:
-            resolved = text.format_map(self.__dict__)
+            resolved = text.format_map(_FmtMap(self))
             if resolved == text:
                 break
             text = resolved

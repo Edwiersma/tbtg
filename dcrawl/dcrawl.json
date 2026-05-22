@@ -53,7 +53,7 @@
           "game_var": ["player.player_background", "pbg_"]
         },
         {
-          "q": "{player}, {player.player_class.desc} Magnificent! Are you ready for adventure? <yellow>y/n</yellow>",
+          "q": "{player}, {player.player_class.desc} Magnificent! Are you ready for adventure? <yellow>y/n</yellow>\n{fnc_render_player}",
           "a": ["y","n"],
           "game_fnc": ["fnc_set_player_done", ""]
         }
@@ -93,7 +93,8 @@
       "C_GameObject": {"name": "default", "color": "dim"},
       "C_ObjName": {"parent_class": "C_GameObject", "color": "purple"},
       "C_Player": {"parent_class": "C_ObjName", "player_class": null,"inventory": [],
-            "stats": {"str": 10, "dex": 10, "con": 10, "int": 10, "wis": 10, "cha": 10}
+            "base_stats": {"str": 10, "dex": 10, "con": 10, "int": 10, "wis": 10, "cha": 10},
+            "stats": {"str": 0, "dex": 0, "con": 0, "int": 0, "wis": 0, "cha": 0}
       },
       "C_Location": {"parent_class": "C_GameObject", "color": "dim"},
       "C_Race": {"parent_class": "C_GameObject", "stats": {"str": 0, "dex": 0, "con": 0, "int": 0, "wis": 0, "cha": 0}},

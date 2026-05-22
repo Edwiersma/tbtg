@@ -46,17 +46,23 @@ class GameInitIns(GameInit):
         self.player.player_class = class_instance
 
     def fnc_set_player_done(self, cmd, arg):
-        for key in self.player.stats:
-            self.player.stats[key] = (
-                    self.player.stats[key] +
-                    self.player.player_race.stats[key] +
-                    self.player.player_class.stats[key] +
-                    self.player.player_background.stats[key]
-            )
+        self.fnc_set_player_stats(self.player)
 
-    def fnc_render_player(self, cmd, arg):
+    def fnc_set_player_stats(self, player=None):
+        if not player:
+            player = self.player
+        for key in player.stats:
+            player.stats[key] = (
+                    player.base_stats[key] +
+                    player.player_race.stats[key] +
+                    player.player_class.stats[key] +
+                    player.player_background.stats[key]
+            )
+        return player.stats
+
+    def fnc_render_player(self):
         bstr = ["╔════╗", "{:^6}", "╠════╣", "║{:^+4}║", "╚({:>2})╝"]
-        attrs = {"str": 6, "dex": 12, "con": 10, "int": 10, "wis": 16, "cha": 8}
+        attrs = self.fnc_set_player_stats()
         player_ac = 12
         player_hp = 26
         player_lv = 3
@@ -65,10 +71,10 @@ class GameInitIns(GameInit):
         lines = []
         name_box = []
         name_box.append("╔" + ("═" * 44) + "╗")
-        name_box.append(f"║NAME: {self.player.name.upper():^13} CLASS: {self.player.player_class.name.upper():^17}║")
-        name_box.append(f"║RACE: {self.player.player_race.name.upper():^13} BACKGROUND: {self.player.player_background.name.upper():^12}║")
+        name_box.append(f"║NAME: {self.player.name.upper():<13} CLASS: {self.player.player_class.name.upper():>16} ║")
+        name_box.append(f"║RACE: {self.player.player_race.name.upper():<13} BACKGROUND: {self.player.player_background.name.upper():>11} ║")
         name_box.append(
-            f"║AC: {player_ac:_^4} HP: {player_hp:_>4}/{player_hp:_<4} GOLD: {player_gold:_^6} LVL: {player_lv:_^3}║")
+            f"║AC: {player_ac:_^4} HP: {player_hp:_>4}/{player_hp:_<4} GOLD: ¤{player_gold:_^5} LVL: {player_lv:_^3}║")
         name_box.append("╚" + ("═" * 44) + "╝")
         lines += name_box
 
